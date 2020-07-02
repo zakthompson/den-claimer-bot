@@ -43,6 +43,7 @@ const updateChannelClaims = async (message) => {
     .find({
       serverId,
     })
+    .sort({ den: 1 })
     .toArray();
   const embed = createClaimsEmbed(
     message,
