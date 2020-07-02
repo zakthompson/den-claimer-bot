@@ -1,10 +1,10 @@
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, Util } = require('discord.js');
 const db = require('../db');
 
 const getClaimStrings = (message, claims, includeUser) =>
   claims.map((claim) => {
     const { den, type, age, version, userId } = claim;
-    const user = message.guild.member(userId).displayName;
+    const user = Util.escapeMarkdown(message.guild.member(userId).displayName);
     return `**${
       type === 'Square' ? '■' : '★'
     } Den ${den} ${age} (${version})** ${

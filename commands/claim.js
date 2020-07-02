@@ -1,5 +1,5 @@
 const db = require('../db');
-const { updateChannelClaims } = require('../utils/helpers');
+const { updateChannelClaims, createClaimsEmbed } = require('../utils/helpers');
 
 module.exports = {
   name: 'claim',
@@ -30,14 +30,22 @@ module.exports = {
       ? 'Shield'
       : 'Sword';
 
-    const existingClaims = claims.find({
-      den,
-      serverId,
-    });
-    const count = await existingClaims.count();
-    if (count) {
+    const existingClaims = await claims
+      .find({
+        den,
+        serverId,
+      })
+      .toArray();
+    if (existingClaims.length) {
       message.reply(
-        'somebody already has a claim on that den. Do you wish to continue? (yes/no)',
+        'the following claims already exist for that den. Do you wish to continue? (yes/no)',
+        createClaimsEmbed(
+          message,
+          `Claims On Den ${den}`,
+          existingClaims,
+          true,
+          false,
+        ),
       );
       const collected = await message.channel.awaitMessages(filter, {
         max: 1,
