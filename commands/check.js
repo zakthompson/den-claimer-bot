@@ -4,7 +4,8 @@ const { createClaimsEmbed } = require('../utils/helpers');
 
 module.exports = {
   name: 'check',
-  description: 'Check your claims, or if a particular den is claimed.',
+  description:
+    'Check your claims, or if a particular den is claimed by anyone.',
   arguments: '[denNum]',
   async execute(prefix, message, args) {
     const claims = db.current.collection('claims');
