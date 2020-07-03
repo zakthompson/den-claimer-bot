@@ -1,16 +1,28 @@
 const { MessageEmbed, Util } = require('discord.js');
 const db = require('../db');
 
-const getClaimStrings = (message, claims, includeUser) =>
-  claims.map((claim) => {
-    const { den, type, age, version, userId } = claim;
-    const user = Util.escapeMarkdown(message.guild.member(userId).displayName);
-    return `**${
-      type === 'Square' ? '■' : '★'
-    } Den ${den} ${age} (${version})** ${
-      includeUser ? `- _Claimed by ${user}_` : ''
-    }`;
-  });
+const claimToKey = (claim) => {
+  const { type, den, age, version } = claim;
+  return `**${type === 'Square' ? '■' : '★'} Den ${den} ${age} (${version})**`;
+};
+
+const getClaimStrings = (message, claims, includeUser) => {
+  const dens = [...new Set(claims.map((claim) => claimToKey(claim)))];
+
+  if (includeUser) {
+    return dens.map((den) => {
+      const userIds = claims
+        .filter((claim) => den === claimToKey(claim))
+        .map((claim) => claim.userId);
+      const users = userIds.map((id) =>
+        Util.escapeMarkdown(message.guild.member(id).displayName),
+      );
+      return `${den}\n${users.map((user) => `_${user}_`).join('\n')}\n`;
+    });
+  }
+
+  return dens;
+};
 
 const createClaimsEmbed = (
   message,
