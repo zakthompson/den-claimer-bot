@@ -43,13 +43,12 @@ const createClaimsEmbed = (
 ) => {
   const embed = new MessageEmbed();
   const nickname = displayName(message.guild.member(message.author));
+  const description = claims.length
+    ? getClaimStrings(message, claims, includeUser).join('\n')
+    : 'There are no claims!';
 
   embed.setTitle(title);
-  embed.setDescription(
-    claims.length
-      ? getClaimStrings(message, claims, includeUser).join('\n')
-      : 'There are no claims!',
-  );
+  embed.setDescription(description);
   if (includeFooter) embed.setFooter(`Requested by ${nickname}`);
   embed.setColor('cccfe0');
 
@@ -71,7 +70,7 @@ const updateChannelClaims = async (message) => {
     message,
     'All Claimed Dens',
     serverClaims,
-    true,
+    false,
     false,
   );
   const channelPin = await pins.findOne({ serverId, channelId });
