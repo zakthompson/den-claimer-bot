@@ -2,6 +2,10 @@ const { MessageEmbed, Util } = require('discord.js');
 const { format } = require('date-fns');
 const db = require('../db');
 
+const displayName = (user) => {
+  return user?.displayName || 'Missing User';
+};
+
 const claimToKey = (claim) => {
   const { type, den, age, version } = claim;
   return `**${type === 'Square' ? '■' : '★'} Den ${den} ${age} (${version})**`;
@@ -16,7 +20,7 @@ const getClaimStrings = (message, claims, includeUser) => {
         .filter((claim) => den === claimToKey(claim))
         .map((claim) => ({
           user: Util.escapeMarkdown(
-            message.guild.member(claim.userId).displayName,
+            displayName(message.guild.member(claim.userId)),
           ),
           createdAt: claim.createdAt,
         }));
@@ -40,7 +44,7 @@ const createClaimsEmbed = (
   includeFooter = true,
 ) => {
   const embed = new MessageEmbed();
-  const nickname = message.guild.member(message.author).displayName;
+  const nickname = displayName(message.guild.member(message.author));
 
   embed.setTitle(title);
   embed.setDescription(
