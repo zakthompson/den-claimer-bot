@@ -1,4 +1,5 @@
 const { MessageEmbed, Util } = require('discord.js');
+const { format } = require('date-fns');
 const db = require('../db');
 
 const claimToKey = (claim) => {
@@ -11,13 +12,20 @@ const getClaimStrings = (message, claims, includeUser) => {
 
   if (includeUser) {
     return dens.map((den) => {
-      const userIds = claims
+      const userClaims = claims
         .filter((claim) => den === claimToKey(claim))
-        .map((claim) => claim.userId);
-      const users = userIds.map((id) =>
-        Util.escapeMarkdown(message.guild.member(id).displayName),
-      );
-      return `${den}\n${users.map((user) => `_${user}_`).join('\n')}\n`;
+        .map((claim) => ({
+          user: Util.escapeMarkdown(
+            message.guild.member(claim.userId).displayName,
+          ),
+          createdAt: claim.createdAt,
+        }));
+      return `${den}\n${userClaims
+        .map(
+          (userClaim) =>
+            `${userClaim.user} _(${format(userClaim.createdAt, 'MMM d')})_`,
+        )
+        .join('\n')}\n`;
     });
   }
 
