@@ -2,9 +2,7 @@ const { MessageEmbed, Util } = require('discord.js');
 const { format } = require('date-fns');
 const db = require('../db');
 
-const displayName = (user) => {
-  return user?.displayName || 'Missing User';
-};
+const displayName = (user) => (user ? user.displayName : 'Missing User');
 
 const claimToKey = (claim) => {
   const { type, den, age, version } = claim;
