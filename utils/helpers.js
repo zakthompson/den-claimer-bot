@@ -6,7 +6,9 @@ const displayName = (user) => (user ? user.displayName : 'Missing User');
 
 const claimToKey = (claim) => {
   const { type, den, age, version } = claim;
-  return `**${type === 'Square' ? '■' : '★'} Den ${den} ${age} (${version})**`;
+  return `**${type === 'Square' ? '■' : '★'} ${
+    den === 'Promo' ? '' : 'Den '
+  }${den} ${age} (${version})**`;
 };
 
 const getClaimStrings = (message, claims, includeUser) => {

@@ -1,10 +1,10 @@
 const db = require('../db');
-const { updateChannelClaims, createClaimsEmbed } = require('../utils/helpers');
+const { updateChannelClaims } = require('../utils/helpers');
 
 module.exports = {
   name: 'claim',
   description: 'Claim a den. Assumes adults, star and Sword by default.',
-  arguments: '<denNum> [b|babies] [sq|square] [sh|shield]',
+  arguments: '<denNum|promo> [b|babies] [sq|square] [sh|shield]',
   async execute(prefix, message, args) {
     const claims = db.current.collection('claims');
     const serverId = message.guild.id;
@@ -13,13 +13,13 @@ module.exports = {
     const filter = (m) => m.author.id === message.author.id;
 
     // Find den number among arguments
-    const denStr = args.find((arg) => parseInt(arg, 10));
+    let denStr = args.find((arg) => arg.toLowerCase().startsWith('pr'))
+      ? 'Promo'
+      : null;
+    denStr = denStr || args.find((arg) => parseInt(arg, 10));
     if (!denStr) {
       return message.reply("you didn't provide a den number! Claim cancelled.");
     }
-
-    // Get number instead of string
-    const den = parseInt(denStr, 10);
 
     // Find other identifiers
     const age = args.find((arg) => arg[0] === 'b') ? 'Babies' : 'Adults';
@@ -32,20 +32,13 @@ module.exports = {
 
     const existingClaims = await claims
       .find({
-        den,
+        denStr,
         serverId,
       })
       .toArray();
     if (existingClaims.length) {
       message.reply(
         'the following claims already exist for that den. Do you wish to continue? (yes/no)',
-        createClaimsEmbed(
-          message,
-          `Claims On Den ${den}`,
-          existingClaims,
-          true,
-          false,
-        ),
       );
       const collected = await message.channel.awaitMessages(filter, {
         max: 1,
@@ -57,9 +50,9 @@ module.exports = {
     }
 
     message.reply(
-      `you are claiming **${
-        type === 'Square' ? '■' : '★'
-      } Den ${den} ${age} (${version})**, correct? (yes/no)`,
+      `you are claiming **${type === 'Square' ? '■' : '★'} ${
+        denStr === 'Promo' ? '' : 'Den '
+      }${denStr} ${age} (${version})**, correct? (yes/no)`,
     );
     const collected = await message.channel.awaitMessages(filter, {
       max: 1,
@@ -67,13 +60,14 @@ module.exports = {
     });
     if (collected.first().content.toLowerCase()[0] === 'y') {
       await claims.insertOne({
-        den,
+        den: denStr,
         age,
         type,
         version,
         serverId,
         userId: message.author.id,
         createdAt: message.createdAt,
+        flaggedForDeletion: false,
       });
       updateChannelClaims(message);
       return message.channel.send('Den claimed!');

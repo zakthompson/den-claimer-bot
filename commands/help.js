@@ -12,6 +12,8 @@ module.exports = {
     embed.setDescription(
       "Below you'll find each supported command along with its **<required>** and **[optional]** arguments.\n\nNote that the _order_ of the arguments does not matter!",
     );
+    embed.setColor('cccfe0');
+
     commands.forEach((command) => {
       embed.addField(
         `${prefix}${command.name} ${command.arguments}`,

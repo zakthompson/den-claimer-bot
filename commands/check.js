@@ -1,4 +1,3 @@
-const { MessageEmbed } = require('discord.js');
 const db = require('../db');
 const { createClaimsEmbed } = require('../utils/helpers');
 
@@ -14,15 +13,22 @@ module.exports = {
     const nickname = message.guild.member(message.author).displayName;
 
     // Find den number among arguments
-    const denStr = args.find((arg) => parseInt(arg, 10));
+    let denStr = args.find((arg) => arg.toLowerCase().startsWith('pr'))
+      ? 'Promo'
+      : null;
+    denStr = denStr || args.find((arg) => parseInt(arg, 10));
     if (denStr) {
-      const den = parseInt(denStr, 10);
       const userClaims = await claims
-        .find({ serverId, den })
+        .find({ serverId, den: denStr })
         .sort({ den: 1 })
         .toArray();
       return message.channel.send(
-        createClaimsEmbed(message, `Claims for Den ${den}`, userClaims, true),
+        createClaimsEmbed(
+          message,
+          `Claims for ${denStr === 'Promo' ? '' : 'Den '}${denStr}`,
+          userClaims,
+          true,
+        ),
       );
     }
 
