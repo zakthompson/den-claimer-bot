@@ -21,6 +21,7 @@ module.exports = {
       const userClaims = await claims
         .find({ serverId, den: denStr })
         .sort({ den: 1 })
+        .collation({ locale: 'en_US', numericOrdering: true })
         .toArray();
       return message.channel.send(
         createClaimsEmbed(
@@ -35,6 +36,7 @@ module.exports = {
     const userClaims = await claims
       .find({ serverId, userId })
       .sort({ den: 1 })
+      .collation({ locale: 'en_US', numericOrdering: true })
       .toArray();
     return message.channel.send(
       createClaimsEmbed(message, `${nickname}'s Claims`, userClaims),

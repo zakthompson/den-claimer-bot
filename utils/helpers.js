@@ -67,6 +67,7 @@ const updateChannelClaims = async (message) => {
       serverId,
     })
     .sort({ den: 1 })
+    .collation({ locale: 'en_US', numericOrdering: true })
     .toArray();
   const embed = createClaimsEmbed(
     message,
