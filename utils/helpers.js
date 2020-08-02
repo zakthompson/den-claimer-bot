@@ -44,7 +44,9 @@ const createClaimsEmbed = (
   includeFooter = true,
 ) => {
   const embed = new MessageEmbed();
-  const nickname = displayName(message.guild.member(message.author));
+  const nickname = message.guild.member
+    ? displayName(message.guild.member(message.author))
+    : '';
   const description = claims.length
     ? getClaimStrings(message, claims, includeUser).join('\n')
     : 'There are no claims!';
@@ -57,11 +59,10 @@ const createClaimsEmbed = (
   return embed;
 };
 
-const updateChannelClaims = async (message) => {
+const updateChannelClaims = async (message, client = null) => {
   const claimsCollection = db.current.collection('claims');
   const pins = db.current.collection('pins');
   const serverId = message.guild.id;
-  const channelId = message.channel.id;
   const serverClaims = await claimsCollection
     .find({
       serverId,
@@ -76,20 +77,31 @@ const updateChannelClaims = async (message) => {
     false,
     false,
   );
-  const channelPin = await pins.findOne({ serverId, channelId });
+  const channelPin = await pins.findOne({ serverId });
+  const messageId = channelPin ? channelPin.messageId : null;
+  const channelId = channelPin ? channelPin.channelId : null;
+
+  const channel =
+    client && channelId
+      ? client.channels.cache.get(channelId)
+      : message.channel;
 
   if (channelPin) {
-    const { messageId } = channelPin;
-    const oldMessage = await message.channel.messages.fetch(messageId);
+    const oldMessage = await channel.messages.fetch(messageId);
     return oldMessage.edit(embed);
   }
 
-  const newMessage = await message.channel.send(embed);
-  pins.insertOne({ serverId, channelId, messageId: newMessage.id });
+  const newMessage = await channel.send(embed);
+  pins.insertOne({
+    serverId,
+    channelId: channel.id,
+    messageId: newMessage.id,
+  });
   return newMessage.pin();
 };
 
 module.exports = {
+  claimToKey,
   getClaimStrings,
   createClaimsEmbed,
   updateChannelClaims,

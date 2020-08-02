@@ -1,5 +1,6 @@
+const addTime = require('date-fns/add');
 const db = require('../db');
-const { updateChannelClaims } = require('../utils/helpers');
+const { updateChannelClaims, createClaimsEmbed } = require('../utils/helpers');
 
 module.exports = {
   name: 'claim',
@@ -32,13 +33,20 @@ module.exports = {
 
     const existingClaims = await claims
       .find({
-        denStr,
+        den: denStr,
         serverId,
       })
       .toArray();
     if (existingClaims.length) {
       message.reply(
         'the following claims already exist for that den. Do you wish to continue? (yes/no)',
+        createClaimsEmbed(
+          message,
+          `Claims On ${denStr === 'Promo' ? '' : 'Den '}${denStr}`,
+          existingClaims,
+          true,
+          false,
+        ),
       );
       const collected = await message.channel.awaitMessages(filter, {
         max: 1,
@@ -67,7 +75,7 @@ module.exports = {
         serverId,
         userId: message.author.id,
         createdAt: message.createdAt,
-        flaggedForDeletion: false,
+        expiry: addTime(message.createdAt, { weeks: 1 }),
       });
       updateChannelClaims(message);
       return message.channel.send('Den claimed!');
